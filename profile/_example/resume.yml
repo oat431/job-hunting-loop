@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://yamlresume.dev/schema.json
+#
+# Somchai Devakul — Master Resume (FILLED EXAMPLE — fictional persona)
+# The BULLET LIBRARY: more bullets than fit one page; the tailor selects per job.
+
+---
+content:
+  basics:
+    name: Somchai Devakul
+    headline: Backend Software Engineer | Java Spring Boot · Golang · MySQL
+    phone: "+66 81 234 5678"
+    email: somchai.devakul@example.com
+    summary: |
+      - Backend engineer with 3+ years building warehouse and logistics systems for a national retail chain
+      - Migrated a 20-year legacy reporting system to Spring Boot 3, cutting deployment time by 95% (1 day to 3-5 minutes)
+      - Built test suites from zero to 90% coverage and enforced the minimum in CI
+      - Improved report API response time ~30% with Redis caching on hot endpoints
+      - Mentored 2 junior developers through structured code reviews
+
+  profiles:
+    - network: GitHub
+      url: https://github.com/somchai-example
+      username: somchai-example
+    - network: LinkedIn
+      url: https://linkedin.com/in/somchai-devakul-example
+      username: somchai-devakul-example
+
+  education:
+    - institution: Chulalongkorn University
+      degree: B.Sc.
+      area: Computer Engineering
+      score: "3.42"
+      startDate: Aug 2018
+      endDate: May 2022
+      courses: []
+      summary: |
+        - Senior project: campus lost-and-found platform (team of 4)
+
+  work:
+    - name: Siam Retail Tech Co., Ltd.
+      startDate: Jul 2023
+      endDate:
+      position: Software Engineer (Backend)
+      summary: |
+        - **Migrated the reporting module** of a 20-year warehouse management system from DB2 stored procedures to Spring Boot 3 ORM (10+ procedures), serving a national retail chain
+        - **Reduced deployment time by 95%** (1 day to 3-5 minutes) by containerizing with Docker and building the Jenkins CI/CD pipeline two other modules adopted
+        - **Raised test coverage from 0% to 90%** on migrated modules via characterization tests and JUnit + Testcontainers suites; enforced 80% minimum in the pipeline
+        - **Improved report API latency ~30%** by profiling slow queries and adding Redis caching (10-min TTL) on the 5 hottest aggregation endpoints
+        - **Built a parcel tracking API in Golang** (PostgreSQL + Redis) handling 8,000+ daily queries at 99% uptime
+        - **Mentored 2 junior developers** through structured code reviews to independent feature delivery
+        - **Authored pipeline and migration documentation** adopted as the team onboarding reference
+
+    - name: Bangkok Web Studio
+      startDate: Jun 2022
+      endDate: Dec 2022
+      position: Software Engineer Intern
+      summary: |
+        - **Maintained 3 client Node.js applications**, closing 40+ tracked bugs across the issue lifecycle
+
+  languages:
+    - language: Thai
+      fluency: Native or Bilingual Proficiency
+      keywords: []
+    - language: English
+      fluency: Professional Working Proficiency
+      keywords:
+        - TOEIC 785 (2023)
+
+  skills:
+    - name: Languages
+      level: Advanced
+      keywords:
+        - Java
+        - Golang
+        - SQL
+    - name: Frameworks
+      level: Advanced
+      keywords:
+        - Spring Boot 3
+        - Node.js
+    - name: Databases
+      level: Advanced
+      keywords:
+        - MySQL
+        - PostgreSQL
+        - Redis
+        - DB2
+    - name: DevOps & Tools
+      level: Intermediate
+      keywords:
+        - Docker
+        - Jenkins
+        - Git
+        - Grafana
+
+locale:
+  language: en
+
+layouts:
+  - engine: latex
+    page:
+      margins: { top: 2cm, left: 1.5cm, right: 1.5cm, bottom: 2cm }
+      paperSize: a4
+      showPageNumbers: true
+    template: jake
+    typography:
+      fontSize: 11pt
+  - engine: docx
+    page:
+      margins: { top: 2cm, left: 1.5cm, right: 1.5cm, bottom: 2cm }
+      paperSize: a4
+      showPageNumbers: true
+    template: calm
+    typography:
+      fontSize: 11pt
+      lineSpacing: normal
+  - engine: markdown
+  - engine: html
+    template: calm
+    typography:
+      fontSize: 14px

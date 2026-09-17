@@ -1,0 +1,20 @@
+{
+  "name": "job-hunting-loop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A cloneable loop-engineering template: scheduled agent loop that screens job postings against YOUR positioning and tailors YOUR resume per job — with honesty checks and a human gate.",
+  "module": "engine/run.ts",
+  "scripts": {
+    "loop": "bun run engine/run.ts",
+    "gate": "bun run engine/run.ts --check-profile",
+    "seed-test": "bun run engine/run.ts --seed-test",
+    "jd": "bun run engine/run.ts --jd"
+  },
+  "dependencies": {
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2"
+  }
+}

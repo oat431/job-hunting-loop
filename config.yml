@@ -1,0 +1,57 @@
+# job-hunting-loop configuration
+# All bounds live here — the convergence clause of the loop.
+
+enabled: true                    # KILL-SWITCH: set false, loop stops within one cycle
+
+cadence_hours: 2                 # scheduler should invoke `bun run loop` at this interval
+
+sources:
+  - inbox                        # loop/inbox/*.md — paste job descriptions here (always on)
+  # - websearch                  # JobsDB via DuckDuckGo HTML / SearXNG (needs network) — enable when ready
+
+search:
+  engine: auto                   # auto = SearXNG if SEARXNG_URL set, else DuckDuckGo HTML
+  site: jobsdb.com
+  location: Thailand
+  queries:
+    - software engineer backend
+    - full stack developer
+    - system analyst
+
+filters:                         # deterministic pre-filter (code, zero model calls)
+  exclude_title_keywords:
+    - intern
+    - internship
+    - freelance
+    - part time
+    - part-time
+  must_include_any: []           # e.g. [java, golang, typescript] — empty = no keyword gate
+  max_results_per_run: 20
+
+screening:
+  score_tailor_min: 7            # >= 7 → tailor automatically
+  score_review_min: 5            # 5–6 → human-review.md queue; < 5 → logged & dropped
+
+caps:
+  postings_screened_per_run: 20
+  resumes_tailored_per_run: 3
+  model_budget_tokens_per_run: 100000
+  build_retries: 1               # then escalate; LaTeX failures are usually deterministic
+
+build:
+  max_pages: 2
+  location_line: "Bangkok, Thailand"   # injected into the PDF header ("" = skip)
+  section_order: [Summary, Work, Education, Skills, Languages]
+
+llm:
+  # OpenAI-compatible endpoint. Set LLM_API_KEY + LLM_BASE_URL in .env (see .env.example).
+  screen_model: deepseek-chat    # cheap model for screening
+  work_model: deepseek-chat      # tailoring + honesty check (swap to a stronger model if desired)
+  temperature: 0.2
+
+paths:
+  profile: profile
+  state: loop/state
+  inbox: loop/inbox
+  targets: targets
+  build: build

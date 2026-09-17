@@ -1,0 +1,27 @@
+# Secrets — NEVER commit .env
+.env
+
+# Loop state & output (machine-local, regenerated)
+loop/state/*.jsonl
+targets/
+build/
+
+# LaTeX artifacts
+*.aux
+*.log
+*.out
+*.tex
+
+# OS / editor
+.DS_Store
+Thumbs.db
+node_modules/
+
+# Live reference profile (personal data - NEVER commit; _template/ and _example/ are the shippable copies)
+profile/*.md
+profile/resume.yml
+
+# Run artifacts (machine-local)
+loop/state/last-run.md
+loop/inbox/*.md
+!loop/inbox/.gitkeep

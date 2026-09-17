@@ -1,0 +1,109 @@
+# yaml-language-server: $schema=https://yamlresume.dev/schema.json
+#
+# <firstname> — Master Resume (TEMPLATE)
+# Resume-as-code via https://yamlresume.dev — YAML → LaTeX/DOCX/HTML/PDF
+#
+# This is the BULLET LIBRARY: include MORE bullets than fit on one page.
+# The loop's tailor step SELECTS per job — it never adds anything not here.
+#
+# Build:  bun run gate   (checks profile completeness)
+#         bash engine/build.sh   (builds this master resume to PDF)
+
+---
+content:
+  basics:
+    name: Your Name
+    headline: Your Role | Key Stack 1 · Key Stack 2 · Key Stack 3
+    phone: "+XX XX XXX XXXX"
+    email: you@example.com
+    summary: |
+      - Summary bullet 1 — quantified achievement, traceable to your fact vault
+      - Summary bullet 2
+      - Summary bullet 3
+      - Summary bullet 4 (optional — tailor picks ≤5)
+
+  profiles:
+    - network: GitHub
+      url: https://github.com/yourhandle
+      username: yourhandle
+    - network: LinkedIn
+      url: https://linkedin.com/in/yourhandle
+      username: yourhandle
+
+  education:
+    - institution: Your University
+      degree: B.Sc.
+      area: Your Field
+      score: "X.XX"
+      startDate: Mon YYYY
+      endDate: Mon YYYY
+      courses: []
+      summary: |
+        - Honors / notable achievements (only if verifiable)
+
+  work:
+    - name: Company One
+      startDate: Mon YYYY
+      endDate:            # empty = present
+      position: Your Title
+      summary: |
+        - **Action verb** + what you did + verified metric (e.g. reduced X by N%)
+        - Include MORE bullets than fit one page — the tailor selects per job
+        - Every number here must have a STAR story in <firstname>-Stories.md
+
+    - name: Company Two
+      startDate: Mon YYYY
+      endDate: Mon YYYY
+      position: Your Title
+      summary: |
+        - Bullet...
+
+  languages:
+    - language: Your Language
+      fluency: Native or Bilingual Proficiency
+      keywords: []
+    - language: English
+      fluency: Professional Working Proficiency
+      keywords:
+        - Evidence (test score) if any
+
+  skills:
+    - name: Languages
+      level: Advanced
+      keywords: [Lang1, Lang2]
+    - name: Frameworks
+      level: Advanced
+      keywords: [Framework1, Framework2]
+    - name: Databases
+      level: Intermediate
+      keywords: [DB1, DB2]
+    - name: DevOps & Tools
+      level: Intermediate
+      keywords: [Tool1, Tool2]
+
+locale:
+  language: en
+
+layouts:
+  - engine: latex
+    page:
+      margins: { top: 2cm, left: 1.5cm, right: 1.5cm, bottom: 2cm }
+      paperSize: a4
+      showPageNumbers: true
+    template: jake
+    typography:
+      fontSize: 11pt
+  - engine: docx
+    page:
+      margins: { top: 2cm, left: 1.5cm, right: 1.5cm, bottom: 2cm }
+      paperSize: a4
+      showPageNumbers: true
+    template: calm
+    typography:
+      fontSize: 11pt
+      lineSpacing: normal
+  - engine: markdown
+  - engine: html
+    template: calm
+    typography:
+      fontSize: 14px
