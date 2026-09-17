@@ -9,7 +9,9 @@
     "loop": "bun run engine/run.ts",
     "gate": "bun run engine/run.ts --check-profile",
     "seed-test": "bun run engine/run.ts --seed-test",
-    "jd": "bun run engine/run.ts --jd"
+    "jd": "bun run engine/run.ts --jd",
+    "test": "bun test",
+    "typecheck": "bun build --target=bun engine/run.ts --outdir /tmp/jhl-typecheck"
   },
   "dependencies": {
     "yaml": "^2.5.0"

@@ -1,0 +1,10 @@
+# Nightly honesty-invariant proof (seed-test against the real model).
+name: nightly-seed-test
+"on":
+  schedule:
+    - cron: "30 3 * * *"   # 10:30 ICT
+  workflow_dispatch:
+jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit

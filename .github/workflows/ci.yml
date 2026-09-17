@@ -1,0 +1,38 @@
+name: CI
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      # typecheck-by-bundle: the engine must compile before anything else
+      - run: bun build --target=bun engine/run.ts --outdir /tmp/ci-typecheck
+      # Tier 1+2: deterministic functions + orchestrator decisions (no network, no keys)
+      - run: bun test
+
+  # The honesty invariant can only be proven against a REAL model. Runs nightly
+  # (and on demand) when repo secrets are present; a red run = the loop must not ship.
+  seed-test:
+    runs-on: ubuntu-latest
+    env:
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+    # skip when no key is configured (forks / PRs from strangers)
+    if: env.LLM_API_KEY != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: stage a complete profile from _example (profile/*.md is gitignored)
+        run: cp profile/_example/* profile/
+      - name: honesty checker must catch the seeded fabrication
+        run: bun run seed-test
