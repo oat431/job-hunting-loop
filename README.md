@@ -44,35 +44,73 @@ flowchart TD
 
 ## Quick start
 
-```bash
-git clone <this repo> && cd job-hunting-loop
-bun install
-cp .env.example .env          # fill in LLM_API_KEY / LLM_BASE_URL
+### 1. Clone & install
 
-# 1. Onboard — bring your own story (see profile/_template/ for blanks,
-#    profile/_example/ for a filled fictional persona)
+```bash
+git clone https://github.com/oat431/job-hunting-loop.git
+cd job-hunting-loop
+bun install
+```
+
+### 2. Configure credentials
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and fill in `LLM_API_KEY` + `LLM_BASE_URL` (any OpenAI-compatible endpoint: OpenAI, DeepSeek, OpenRouter, DashScope…). Never commit `.env`.
+
+### 3. Onboard — bring your own story
+
+```bash
 cp profile/_template/firstname.md             profile/Yourname.md
 cp profile/_template/firstname-Positioning.md profile/Yourname-Positioning.md
 cp profile/_template/firstname-Stories.md     profile/Yourname-Stories.md
 cp profile/_template/resume.yml               profile/resume.yml
-#    ...fill all four in. An LLM may help extract from your existing resume —
-#    but YOU verify every line. It's your name on the PDF.
-
-bun run gate                  # ✅ the loop refuses to start until this passes
-
-# 2. Prove the shape manually (Phase 0) — one real JD, by hand or via harness:
-mkdir -p loop/inbox
-#    paste a real job description into loop/inbox/my-first-jd.md
-#    (optional frontmatter: title:, company:, url:, location:)
-bun run loop                  # one full run; watch the console
-
-# 3. Prove the honesty checker works (required before trusting the loop):
-bun run seed-test             # injects a fake skill + number drift → checker MUST catch it
-
-# 4. Schedule it:
-#    cron:            0 */2 * * *  cd /path/to/job-hunting-loop && bun run loop --scheduled
-#    Windows Task Scheduler, or your agent platform's cronjob feature.
 ```
+
+Fill in all four files — see `profile/_example/` for a filled fictional persona (Somchai) to copy the depth from. An LLM may help extract from your existing resume, but **YOU verify every line**: it's your name on the PDF.
+
+> ⚠️ Your `-Positioning.md` is the **screening criteria** — target roles, must-haves, deal-breakers. Not an interview narrative. A vague positioning file produces a vague screen.
+
+The loop refuses to start until the profile is complete:
+
+```bash
+bun run gate
+```
+
+### 4. First run — one real job
+
+```bash
+mkdir -p loop/inbox
+```
+
+Paste a real job description into `loop/inbox/my-first-jd.md` (optional frontmatter: `title:`, `company:`, `url:`, `location:`), then:
+
+```bash
+bun run loop
+```
+
+Watch the console: fetch → dedup → screen (score 0–10) → tailor → honesty check → build. Output lands in `targets/{company-name}_resume/`. Run it again — it should print `nothing new` with **zero model calls** (that's the dedup exit working).
+
+### 5. Prove the honesty checker works
+
+Required before trusting the loop:
+
+```bash
+bun run seed-test
+```
+
+Injects a fake skill + a number drift into a copy of your resume — the checker **must** catch both. If it doesn't, the loop doesn't ship.
+
+### 6. Schedule it
+
+```bash
+# cron (Linux/macOS): every 2 hours
+0 */2 * * * cd /path/to/job-hunting-loop && bun run loop --scheduled
+```
+
+On Windows use Task Scheduler (`bun run engine/run.ts --scheduled`), or your agent platform's cronjob feature. Kill-switch anytime: `enabled: false` in `config.yml`.
 
 ## Configuration
 
@@ -90,7 +128,9 @@ Everything lives in `config.yml`: cadence, search queries/location, score thresh
 
 ## Design
 
-The full design doc (thesis, decisions, architecture) lives in the author's vault as the `job-hunting-as-loop-engineering` proposal. Checklists that govern this repo: **loop-engineering** (convergence: progress measure · bounds · exits) and **graph-engineering** (structure everywhere, judgment only where needed; frozen anchors).
+📄 **[Full design proposal: Job-Hunting as Loop Engineering](https://github.com/oat431/oralita_md/blob/main/personal/ai/job-hunting-as-loop-engineering.md)** — the thesis (why this is loop engineering), the five locked design decisions, architecture, repo layout rationale, onboarding philosophy, the honesty-anchor invariant, bounds & budgets, and the build roadmap.
+
+The governing checklists: **loop-engineering** (convergence: progress measure · bounds · exits) and **graph-engineering** (structure everywhere, judgment only where needed; frozen anchors).
 
 Architecture rules for contributors live in [`AGENTS.md`](AGENTS.md) — the short version: `profile/` is read-only to the engine; model calls exist only in screen/tailor/check; every exit is designed; caps are enforced in code, not prompts; the seed test gates releases.
 
