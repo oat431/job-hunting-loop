@@ -12,19 +12,23 @@ clone → bring your own story → configure → start the loop
 
 ## How it works
 
-```
-⏰ every 2h (config)
-  → fetch postings (inbox files + JobsDB web search)
-  → dedup vs loop/state/jobs.jsonl          (seen = 0 model calls)
-  → deterministic pre-filter                (config excludes — 0 model calls)
-  → LLM screen vs YOUR Positioning.md       → score 0–10
-      < 5   → logged, dropped
-      5–6   → human-review.md queue
-      ≥ 7   → tailor: select/reorder bullets from YOUR master resume
-              → 🚨 honesty check: every claim traces to your fact vault?
-                 fail → human-review.md (never built)
-                 pass → build PDF (yamlresume → xelatex) → verify pages
-                        → targets/{company-name}_resume/ + match-report.md
+```mermaid
+flowchart TD
+    CRON["⏰ Scheduler — every 2h (config)"] --> FETCH["Fetch postings<br/>inbox files + JobsDB web search"]
+    FETCH --> DEDUP{"New posting?<br/>vs loop/state/jobs.jsonl"}
+    DEDUP -->|"seen"| SKIP["Skip — 0 model calls"]
+    DEDUP -->|"new"| PRE["Deterministic pre-filter<br/>config excludes — 0 model calls"]
+    PRE -->|"fail"| DROP1["Log: rejected"]
+    PRE -->|"pass"| SCREEN["LLM screen vs YOUR Positioning.md<br/>score 0–10"]
+    SCREEN -->|"score < 5"| DROP2["Log: not-a-fit"]
+    SCREEN -->|"score 5–6"| QUEUE["human-review.md queue"]
+    SCREEN -->|"score ≥ 7"| TAILOR["Tailor: select/reorder bullets<br/>from YOUR master resume"]
+    TAILOR --> CHECK{"🚨 Honesty check:<br/>every claim traces to<br/>your fact vault?"}
+    CHECK -->|"fail"| QUEUE
+    CHECK -->|"pass"| BUILD["Build PDF<br/>yamlresume → xelatex"]
+    BUILD --> VERIFY{"Verify:<br/>PDF exists, ≤ max pages"}
+    VERIFY -->|"fail (1 retry done)"| QUEUE
+    VERIFY -->|"pass"| OUT["📁 targets/{company-name}_resume/<br/>pdf + yml + match-report.md"]
 ```
 
 **The loop never applies, emails, or uploads.** It writes to `targets/` and stops. You review. That's by design — the human gate is permanent.
@@ -86,19 +90,9 @@ Everything lives in `config.yml`: cadence, search queries/location, score thresh
 
 ## Design
 
-The full design doc (thesis, decisions, architecture, roadmap): `docs/design.md` or the [[job-hunting-as-loop-engineering]] note in the author's vault. Checklists that govern this repo: **loop-engineering** (convergence: progress measure · bounds · exits) and **graph-engineering** (structure everywhere, judgment only where needed; frozen anchors).
+The full design doc (thesis, decisions, architecture) lives in the author's vault as the `job-hunting-as-loop-engineering` proposal. Checklists that govern this repo: **loop-engineering** (convergence: progress measure · bounds · exits) and **graph-engineering** (structure everywhere, judgment only where needed; frozen anchors).
 
 Architecture rules for contributors live in [`AGENTS.md`](AGENTS.md) — the short version: `profile/` is read-only to the engine; model calls exist only in screen/tailor/check; every exit is designed; caps are enforced in code, not prompts; the seed test gates releases.
-
-## Roadmap
-
-- [x] Phase 1 — engine pipeline (one JD in → tailored resume out)
-- [x] Phase 2 — loop machinery (dedup state, caps, human queue, traces)
-- [x] Phase 3 — template-ize (blank templates + filled example + onboarding gate)
-- [ ] Phase 4 — scheduler packaging + notifications
-- [ ] Phase 5 — public release + first external user onboarding
-- [ ] Full-JD fetch adapter (websearch currently screens on snippets)
-- [ ] More source adapters (RSS, career pages, alert-email intake)
 
 ## License
 
