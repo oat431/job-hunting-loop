@@ -13,9 +13,10 @@ bun install                 # deps (yaml)
 bun run gate                # onboarding-gate check only
 bun run loop                # one full run (fetch → … → publish → trace)
 bun run jd <path-to-jd.md>  # single-JD harness run (Phase 1 testing)
+bun run master-pdf          # build profile/resume.yml → master-resume.pdf (same toolchain as the loop)
 bun run seed-test           # MUST pass before shipping: honesty checker catches a seeded fabrication
 bun test                    # Tier 1+2 suite — pure functions + orchestrator decisions (no network/keys)
-bash engine/build.sh        # (reference) standalone build chain check
+bash engine/build.sh        # same as master-pdf, via bash (delegates to master-build.ts)
 ```
 
 Build chain requires: `npx yamlresume`, `xelatex` (MiKTeX/TeX Live) on PATH.

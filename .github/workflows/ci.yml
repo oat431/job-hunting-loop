@@ -14,8 +14,9 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      # typecheck-by-bundle: the engine must compile before anything else
+      # typecheck-by-bundle: every engine entry point must compile
       - run: bun build --target=bun engine/run.ts --outdir /tmp/ci-typecheck
+      - run: bun build --target=bun engine/master-build.ts --outdir /tmp/ci-typecheck
       # Tier 1+2: deterministic functions + orchestrator decisions (no network, no keys)
       - run: bun test
 

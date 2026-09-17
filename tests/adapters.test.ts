@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { patchTex } from "../engine/adapters/build.ts";
 import { parseFrontmatter, guessCompany, getSources, parseDdgHtml } from "../engine/adapters/sources.ts";
-import { createJobStore, createReviewQueue, entryMd } from "../engine/adapters/state.ts";
+import { createJobStore, createReviewQueue } from "../engine/adapters/state.ts";
 import { Budget, createLlmGateway } from "../engine/adapters/llm.ts";
 import { poisonResume } from "../engine/run.ts";
 import { testConfig } from "./fakes.ts";

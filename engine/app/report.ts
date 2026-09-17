@@ -49,9 +49,7 @@ ${run.escalated > 0 ? `\n👉 **${run.escalated} item(s) need you:** loop/state/
 `;
 }
 
-/** Human-readable one-liner for why an escalation happened (used by the queue). */
-export function escalationWhy(reason: string, screen?: ScreenResult, check?: HonestyResult): string {
-  if (check && !check.pass) return `HONESTY CHECK FAILED — ${check.unverifiable.length} unverifiable claim(s)`;
-  if (screen && reason === "mid-band") return `mid-band score ${screen.score}: ${screen.verdict}`;
-  return reason;
+/** Why an honesty failure escalates — single home for the string the queue shows. */
+export function honestyWhy(check: HonestyResult): string {
+  return `HONESTY CHECK FAILED — ${check.unverifiable.length} unverifiable claim(s)`;
 }
