@@ -27,6 +27,7 @@ filters:                         # deterministic pre-filter (code, zero model ca
     - part-time
   must_include_any: []           # e.g. [java, golang, typescript] — empty = no keyword gate
   max_results_per_run: 20
+  jd_min_chars: 200              # JD shorter than this = stub, rejected before any model call
 
 screening:
   score_tailor_min: 7            # >= 7 → tailor automatically
@@ -37,6 +38,7 @@ caps:
   resumes_tailored_per_run: 3
   model_budget_tokens_per_run: 100000
   build_retries: 1               # then escalate; LaTeX failures are usually deterministic
+  wall_clock_minutes: 30         # hard run deadline — deferred items stay unseen (dedup picks them up next run)
 
 build:
   max_pages: 2

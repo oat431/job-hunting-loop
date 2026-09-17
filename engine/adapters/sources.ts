@@ -1,13 +1,12 @@
-// engine/sources.ts — pluggable job-posting sources.
-// A source returns raw postings; dedup happens later in run.ts (never here).
+// engine/adapters/sources.ts — pluggable job-posting sources (inbox, websearch).
+// A source returns raw postings; dedup happens in the orchestrator, never here.
+// Unknown source names THROW at assembly time (a typo used to silently disable a
+// source, making a starved run look like "nothing new").
 import { readdirSync, readFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, jobKey, type Config, type JobPosting } from "./lib.ts";
-
-export interface Source {
-  name: string;
-  fetch(cfg: Config): Promise<JobPosting[]>;
-}
+import { jobKey } from "../domain/paths.ts";
+import type { Config, JobPosting } from "../domain/types.ts";
+import type { Source } from "../ports.ts";
 
 // ── inbox source: user pastes JD files into loop/inbox/*.md ──────────────
 // Frontmatter (optional): title:, company:, url:, location:
@@ -15,7 +14,7 @@ export interface Source {
 export const inboxSource: Source = {
   name: "inbox",
   async fetch(cfg: Config): Promise<JobPosting[]> {
-    const dir = join(ROOT, cfg.paths.inbox);
+    const dir = join(inboxRoot(), cfg.paths.inbox);
     if (!existsSync(dir)) { mkdirSync(dir, { recursive: true }); return []; }
     const out: JobPosting[] = [];
     for (const f of readdirSync(dir).filter(x => x.endsWith(".md"))) {
@@ -37,7 +36,13 @@ export const inboxSource: Source = {
   },
 };
 
-function parseFrontmatter(raw: string): { meta: Record<string, string>; body: string } {
+// Root for inbox reads — set once by main via setSourcesRoot (keeps this module
+// free of the old engine-relative ROOT hack while staying import-light).
+let ROOT_OVERRIDE = ".";
+export function setSourcesRoot(root: string): void { ROOT_OVERRIDE = root; }
+function inboxRoot(): string { return ROOT_OVERRIDE; }
+
+export function parseFrontmatter(raw: string): { meta: Record<string, string>; body: string } {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!m) return { meta: {}, body: raw };
   const meta: Record<string, string> = {};
@@ -49,8 +54,8 @@ function parseFrontmatter(raw: string): { meta: Record<string, string>; body: st
 }
 
 // ── websearch source: JobsDB via DuckDuckGo HTML or SearXNG ──────────────
-// Search-result snippets become stub postings (status: needs_jd). The LLM screen
-// runs on snippet+title; a full-JD fetch can be added per-adapter later.
+// Search-result snippets become stub postings. The LLM screen runs on
+// snippet+title; a full-JD fetch can be added per-adapter later.
 export const websearchSource: Source = {
   name: "websearch",
   async fetch(cfg: Config): Promise<JobPosting[]> {
@@ -79,7 +84,7 @@ interface SearchResult { title: string; url: string; snippet: string; company: s
 async function searxng(query: string): Promise<SearchResult[]> {
   const base = (process.env.SEARXNG_URL ?? "").replace(/\/$/, "");
   if (!base) return [];
-  const res = await fetch(`${base}/search?q=${encodeURIComponent(query)}&format=json`);
+  const res = await fetch(`${base}/search?q=${encodeURIComponent(query)}&format=json`, { signal: AbortSignal.timeout(30_000) });
   if (!res.ok) return [];
   const data = await res.json() as { results?: { title: string; url: string; content?: string }[] };
   return (data.results ?? []).map(r => ({
@@ -88,14 +93,20 @@ async function searxng(query: string): Promise<SearchResult[]> {
 }
 
 async function duckduckgo(query: string): Promise<SearchResult[]> {
-  // DDG HTML endpoint — no API key. Fragile by nature; adapter interface isolates the damage.
+  // DDG HTML endpoint — no API key. Fragile by nature; the adapter seam isolates the damage.
   const res = await fetch("https://html.duckduckgo.com/html/", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mozilla/5.0 (job-hunting-loop)" },
     body: `q=${encodeURIComponent(query)}`,
-  });
-  if (!res.ok) return [];
+    signal: AbortSignal.timeout(30_000),
+  }).catch(() => null);
+  if (!res || !res.ok) return [];
   const html = await res.text();
+  return parseDdgHtml(html);
+}
+
+/** DDG HTML result parse (pure — testable against a saved fixture). */
+export function parseDdgHtml(html: string): SearchResult[] {
   const out: SearchResult[] = [];
   const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
   let m: RegExpExecArray | null;
@@ -110,14 +121,21 @@ async function duckduckgo(query: string): Promise<SearchResult[]> {
 }
 
 function stripTags(s: string): string { return s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim(); }
-function guessCompany(title: string, url: string): string {
-  // JobsDB titles are usually "Role - Company" or "Role at Company"; fall back to domain
-  const t = title.split(/\s*[–|]\s*|\s+at\s+/i).pop()?.trim();
+
+export function guessCompany(title: string, url: string): string {
+  // JobsDB titles are usually "Role - Company" / "Role – Company" or "Role at Company"; fall back to domain
+  const t = title.split(/\s*[–—|]\s*|\s+at\s+/i).pop()?.trim();
   if (t && t.length > 1 && t.length < 60 && !/\b(engineer|developer|analyst|manager)\b/i.test(t)) return t;
   try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "Unknown"; }
 }
 
+const REGISTRY: Record<string, Source> = { inbox: inboxSource, websearch: websearchSource };
+
+/** Resolve configured source names; THROWS on unknown names (fail loud). */
 export function getSources(cfg: Config): Source[] {
-  const registry: Record<string, Source> = { inbox: inboxSource, websearch: websearchSource };
-  return cfg.sources.map(s => registry[s]).filter(Boolean);
+  return cfg.sources.map(s => {
+    const src = REGISTRY[s];
+    if (!src) throw new Error(`unknown source "${s}" in config.yml — known: ${Object.keys(REGISTRY).join(", ")}`);
+    return src;
+  });
 }
