@@ -96,4 +96,4 @@ Architecture rules for contributors live in [`AGENTS.md`](AGENTS.md) — the sho
 
 ## License
 
-TBD (MIT intended). The `_example/` profile is fictional; never commit real personal data to a public fork.
+[MIT](LICENSE) © 2026 Sahachan Tippimwong. The `_example/` profile is fictional; never commit real personal data to a public fork.
