@@ -6,6 +6,7 @@ loop/state/*.jsonl
 loop/state/human-review.md
 targets/
 build/
+master-resume.pdf
 
 # LaTeX artifacts
 *.aux

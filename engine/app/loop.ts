@@ -12,7 +12,7 @@ import { prefilter } from "../domain/prefilter.ts";
 import type { Config, JobPosting, JobStatus, ReviewItem, RunRecord, ScreenResult } from "../domain/types.ts";
 import { isTerminalStatus } from "../domain/types.ts";
 import { honestyCheck, screenPosting, tailorResume, type StageDeps } from "./stages.ts";
-import { matchReport } from "./report.ts";
+import { honestyWhy, matchReport } from "./report.ts";
 import type {
   JobStore, ModelGateway, ProfileStore, PromptReader, ReviewQueue,
   Source, TargetPublisher, Toolchain, TraceSink,
@@ -180,7 +180,7 @@ export async function runLoop(deps: LoopDeps, trigger: string): Promise<RunRecor
       if (!check.pass) {
         log(`🚨 honesty check failed for "${p.title}" — escalated, NOT built.`);
         dispose(p, { kind: "escalate", status: "queued_for_human", screen,
-          why: `HONESTY CHECK FAILED — ${check.unverifiable.length} unverifiable claim(s)`,
+          why: honestyWhy(check),
           unverifiable: check.unverifiable });
         continue;
       }
